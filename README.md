@@ -103,7 +103,7 @@ mprof plot -o RAM_usage.png --backend agg
 ```
 ![RAM usage](./assets/RAM_usage.png)
 
-### Example of full output:
+### Example of a full output:
 
 ```
 (.venv) aquemy@ws:~/projects/benchmark/vision-benchmark$ python benchmark.py 
@@ -154,6 +154,8 @@ total_postprocess   0.07287    10  0.007287  0.003465  0.001867  0.012716   1.44
       timestamp                 tag  duration   package_0      core_0
 0  1.706986e+09  inference_pipeline  5.212322  79850138.0  32277140.0
 ```
+
+![Alt text](assets/examples.png)
 
 ### The missing ones
 
