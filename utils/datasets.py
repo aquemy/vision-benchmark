@@ -1,5 +1,45 @@
 import numpy as np
 import cv2
+from torch.utils.data import Dataset
+from pathlib import Path
+import glob
+from pandas.core.common import flatten
+
+DATASETS_PATH = Path('./datasets')
+
+# TODO: in yaml file
+datasets = {
+    'imagenet-mini': 'imagenet-mini/val'
+}
+
+def load_dataset(dataset_name: str):
+    # TODO read from yaml
+    img_path = datasets[dataset_name]
+
+    return BenchmarkDataset(str((DATASETS_PATH / img_path).absolute()))
+
+
+class BenchmarkDataset(Dataset):
+    """ Basic image loader for algorithm hardware benchmark purpose. 
+    Does not retain labels as it is made to evaluate the algorithm on a problem but its hardware perf.
+
+    Note(aquemy): the torchvision version of this YOLO implementation does not have torchvision.datasets.ImageFolder
+    """
+    def __init__(self, img_path):
+        img_paths = []
+        for data_path in glob.glob(img_path +  '/*'):
+            img_paths.append(glob.glob(data_path + '/*'))
+            
+        self.image_paths  = list(flatten(img_paths))
+        
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        image_filepath = self.image_paths[idx]
+        image = cv2.imread(image_filepath)
+        
+        return image, 0
 
 
 def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
