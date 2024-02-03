@@ -7,6 +7,17 @@ from utils.datasets import letterbox
 import numpy as np
 import torch
 import yaml
+from functools import partial
+import torch
+import time
+
+layer_time_dict = {}
+
+def take_time_pre(layer_name, module, input):
+    layer_time_dict[layer_name] = time.time() 
+
+def take_time(layer_name, module, input, output):
+    layer_time_dict[layer_name] =  time.time() - layer_time_dict[layer_name]
 
 
 class YOLOPipeline:
@@ -23,6 +34,13 @@ class YOLOPipeline:
             stride = int(self.model.stride.max())
             self.imgsz = check_img_size(self.settings['img_size'], s=stride)
             self.classes = yaml.load(open(classes), Loader=yaml.SafeLoader)['classes']
+
+    def register_hooks(self):
+        # Register function for every 
+        for m in self.model.modules():
+            for layer in m.children():
+                layer.register_forward_pre_hook(partial(take_time_pre, layer) )
+                layer.register_forward_hook(partial(take_time, layer) )
 
     def preprocess_batch(self, images):
         # TODO: vectorize properly or threadpool
