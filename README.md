@@ -16,5 +16,5 @@ The selected dataset is a tiny subset of ImageNet available on Kaggle and called
 ## Object Detection Pipeline
 
 
-## Benchrmark Framework
+## Benchmark Framework
 
