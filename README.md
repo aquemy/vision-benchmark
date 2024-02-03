@@ -91,13 +91,65 @@ Example of output:
 
 ### RAM
 
-Probably a bit less important in the context of CPU but can still give some importnat hints no the model's behavior.
+Probably a bit less important in the context of CPU but can still give some important hints on the model's behavior.
 
 ```
 mprof run python benchmark.py 
 mprof plot -o RAM_usage.png --backend agg
 ```
 ![RAM usage](./assets/RAM_usage.png)
+
+### Example of full output:
+
+```
+(.venv) aquemy@ws:~/projects/benchmark/vision-benchmark$ python benchmark.py 
+WARNING:root:pynvml not found you can't use NVIDIA devices
+STAGE:2024-02-03 19:38:24 302686:302686 ActivityProfilerController.cpp:294] Completed Stage: Warm Up
+STAGE:2024-02-03 19:38:30 302686:302686 ActivityProfilerController.cpp:300] Completed Stage: Collection
+
+#### CPU Time and Call Count:
+---------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                             Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg    # of Calls  
+---------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+          YOLO Inference Pipeline        20.39%        1.064s       100.00%        5.216s        5.216s             1  
+                     aten::conv2d         0.27%      14.105ms        55.26%        2.882s       4.970ms           580  
+                aten::convolution         0.43%      22.189ms        54.99%        2.868s       4.945ms           580  
+               aten::_convolution         0.57%      29.585ms        54.56%        2.846s       4.907ms           580  
+         aten::mkldnn_convolution        53.23%        2.777s        53.99%        2.816s       4.856ms           580  
+                 aten::batch_norm         0.20%      10.349ms         6.34%     330.471ms     600.856us           550  
+     aten::_batch_norm_impl_index         0.47%      24.269ms         6.14%     320.122ms     582.040us           550  
+                 aten::max_pool2d         0.05%       2.381ms         5.60%     291.902ms       4.865ms            60  
+    aten::max_pool2d_with_indices         5.55%     289.521ms         5.55%     289.521ms       4.825ms            60  
+          aten::native_batch_norm         4.78%     249.501ms         5.52%     288.083ms     523.787us           550  
+---------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 5.216s
+
+ERROR:2024-02-03 19:38:39 302686:302686 CudaDeviceProperties.cpp:26] cudaGetDeviceCount failed with code 100
+STAGE:2024-02-03 19:38:40 302686:302686 output_json.cpp:417] Completed Stage: Post Processing
+
+#### Time spent per layer type:
+layer_type
+Conv           3.753335
+Conv2d         3.022981
+BatchNorm2d    0.486310
+Detect         0.478222
+MaxPool2d      0.304365
+SP             0.219757
+LeakyReLU      0.219396
+Concat         0.175794
+MP             0.093428
+Upsample       0.044974
+
+#### Time spent per pipeline steps:
+                      total count       avg       std       min       max    total %
+total_preprocess   0.101738    10  0.010174       0.0  0.010174  0.010174   2.023684
+total_forward      4.852746    10  0.485275  0.059022  0.400288  0.578981  96.526841
+total_postprocess   0.07287    10  0.007287  0.003465  0.001867  0.012716   1.449475
+
+#### Total Energy (in uJ):
+      timestamp                 tag  duration   package_0      core_0
+0  1.706986e+09  inference_pipeline  5.212322  79850138.0  32277140.0
+```
 
 ### The missing ones
 
@@ -158,4 +210,5 @@ datasets = {
 - Integrate `mprof` directly in the benchmark rather than a separate command.
 - Integrating VTune directly in the benchmark.
 - Improving the benchmark using Cython, CPU pinning, OpenVINO or ONNX.
-- Streamlit or Tensorboard to present all the results.
+- Streamlit or Tensorboard to present automatically all the results from a run.
+- MLFlow to manage the runs instead of me :()
