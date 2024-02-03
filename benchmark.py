@@ -1,11 +1,10 @@
 from pipelines.yolo_object_detector import YOLOPipeline
 from utils.detections import draw
+from utils.postprocess import post_process_layer_timer, post_process_pipeline_steps_timer
 import json
 from pathlib import Path
 import cv2
-from pandas import DataFrame
 import torch 
-import numpy as np
 from pandas import concat
 from datetime import datetime
 from utils.datasets import load_dataset
@@ -44,43 +43,6 @@ def inference_pipeline(pipeline, imgs, output, verbose: bool = False):
         cv2.imwrite(str(output / 'images' / f'image_{i}.jpg'), detected_image)
         if verbose:
             print(json.dumps(detections, indent=4))
-
-
-def post_process_layer_timer(data: dict) -> DataFrame:
-    data = {k: [np.array(v)] for k,v in data.items()}
-    df = DataFrame.from_dict(data=data, orient='index', columns=['runs'])
-
-    df['total'] = df.apply(lambda x: np.sum(x.runs), axis=1)
-    df['avg'] = df.apply(lambda x: np.mean(x.runs), axis=1)
-    df['std'] = df.apply(lambda x: np.std(x.runs), axis=1)
-    df['min'] = df.apply(lambda x: np.min(x.runs), axis=1)
-    df['max'] = df.apply(lambda x: np.max(x.runs), axis=1)
-
-    df =  df.reset_index().rename(columns={'index': 'layer_type'})
-    df['layer_type'] = df['layer_type'].apply(lambda x: type(x).__name__)
-
-    return df
-
-def post_process_pipeline_steps_timer(pipeline):
-    data_postprocess = {k: [np.array(v)] for k,v in pipeline.postprocess_time.items()}
-    data_preprocess = {
-        'total_preprocess': 
-        [np.array([v / len(pipeline.forward_time['total']) for _ in range(len(pipeline.forward_time['total']))])] 
-        for k,v in pipeline.preprocess_time.items()}
-    data_forward = {'total_forward': [np.array(v)] for k,v in pipeline.forward_time.items()}
-    aggregated = concat([
-        DataFrame(data_preprocess).T, 
-        DataFrame(data_forward).T, 
-        DataFrame(data_postprocess).rename(columns={'total': 'total_postprocess'}).T])
-    aggregated.columns = ['runs']
-    aggregated['total'] = aggregated.apply(lambda x: np.sum(x.runs), axis=1)
-    aggregated['count'] = aggregated.apply(lambda x: x.runs.shape[0], axis=1)
-    aggregated['avg'] = aggregated.apply(lambda x: np.mean(x.runs), axis=1)
-    aggregated['std'] = aggregated.apply(lambda x: np.std(x.runs), axis=1)
-    aggregated['min'] = aggregated.apply(lambda x: np.min(x.runs), axis=1)
-    aggregated['max'] = aggregated.apply(lambda x: np.max(x.runs), axis=1)
-    return aggregated
-
 
 def _init_run():
     output = Path('./output')
