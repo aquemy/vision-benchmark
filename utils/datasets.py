@@ -36,11 +36,13 @@ class BenchmarkDataset(Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        image_filepath = self.image_paths[idx]
-        image = cv2.imread(image_filepath)
-        
-        return image, 0
-
+        images_filepath = self.image_paths[idx]
+        if isinstance(images_filepath, str):
+            image = cv2.imread(images_filepath)
+            return image
+        else:
+            images = [cv2.imread(img) for img in images_filepath]
+            return images
 
 def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
     # Resize and pad image while meeting stride-multiple constraints

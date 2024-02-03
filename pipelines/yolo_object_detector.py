@@ -24,6 +24,18 @@ class YOLOPipeline:
             self.imgsz = check_img_size(self.settings['img_size'], s=stride)
             self.classes = yaml.load(open(classes), Loader=yaml.SafeLoader)['classes']
 
+    def preprocess_batch(self, images):
+        # TODO: vectorize properly or threadpool
+        batch = [img.copy() for img in images]
+        batch = [letterbox(img, self.imgsz, auto=self.imgsz != 1280)[0] for img in batch]
+        batch = [img[:, :, ::-1].transpose(2, 0, 1) for img in batch]
+        batch = [np.ascontiguousarray(img) for img in batch]
+        batch = [torch.from_numpy(img) for img in batch]
+        batch = [img.float() / 255.0 for img in batch]
+        unsqueeze = lambda x: x.unsqueeze(0) if x.ndimension() == 3 else x
+        batch = [unsqueeze(img) for img in batch]
+
+        return images, batch
 
     def preprocess_image(self, img):
         im0 = img.copy()
@@ -39,6 +51,13 @@ class YOLOPipeline:
 
         return im0, img
     
+    def postprocess_batch(self, preds, im0s, images):
+        # TODO: vectorize properly or threadpool
+        detections = [None] * len(preds)
+        for i in range(len(preds)):
+            detections[i] = self.postprocess_image(preds[i], im0s[i], images[i])
+        return detections
+    
     def postprocess_image(self, pred, im0, img):
         pred = non_max_suppression(pred, self.settings['conf_thres'], self.settings['iou_thres'])
         raw_detection = np.empty((0,6), float)
@@ -51,9 +70,22 @@ class YOLOPipeline:
             
         return Detections(raw_detection, self.classes).to_dict()
 
+
+    def detect_batch(self, images):
+        with torch.no_grad():
+            # TODO: vectorize properly or threadpool
+            im0, images = self.preprocess_batch(images)
+            preds = [self.model(img)[0] for img in images]
+            detections = self.postprocess_batch(preds, im0, images)
+            return detections
+
+
     def detect(self, img):
         with torch.no_grad():
             im0, img = self.preprocess_image(img)
             pred = self.model(img)[0]
             detections = self.postprocess_image(pred, im0, img)
             return detections
+        
+
+    

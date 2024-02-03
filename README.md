@@ -9,6 +9,8 @@ Modification to the algorithm:
 1. I removed all the other capabilities of the algorithm (tracking, OCR, stream/video, segmentation) to keep only the object detection.
 2. I removed all the training part to keep only the inference part.
 3. I removed the GPU specific code and pinned the device to CPU wherever possible.
+4. I had to create an equivalent to `torchvision.datasets.ImageFolder` as it does not exist in the torchvision version required by this YOLO implementation.
+5. I had to write the batch inference method because the implementation offered only sequential inference.
 
 The selected dataset is a tiny subset of ImageNet available on Kaggle and called [imagenet-mini](https://www.kaggle.com/datasets/ifigotin/imagenetmini-1000).
 
