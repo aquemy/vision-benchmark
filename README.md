@@ -19,13 +19,13 @@ The selected dataset is a tiny subset of ImageNet available on Kaggle and called
 
 Structure of the project:
 ```
-/models  # YOLO implementation
+/models  # YOLO implementation - !!! not my code at all
 /pipelines
     |- yolo_object_detector.py  # Pipeline object responsible for (pre,post)processing, forward and timing
 /utils
     |- dataset.py     # General loader for img as PyTorch Dataset + letterbox
-    |- detections.py  # Bounding box
-    |- general.py     # Preprocessing and postprocessing methods
+    |- detections.py  # Bounding box - !!! not my code (mostly)
+    |- general.py     # Preprocessing and postprocessing methods - !!! not my code (mostly)
     |- models.py      # Model loader
 benchmark.py          # Execution of the pipeline, metric measurements and postprocessing
 ```
